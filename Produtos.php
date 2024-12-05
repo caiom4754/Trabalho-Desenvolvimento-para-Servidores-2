@@ -2,195 +2,173 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Produtos extends CI_Controller
-{
-    //Atributos para produtos, vou tentar adicionar pelo menos 5
-    private $codigo_produto;
-    private $nome_produto;
-    private $preco_produto;
-    private $descricao_produto;
-    private $quantidade_produto;
-    private $usuariologin;
+{ // Atributos privados da classe
+    private $codigo;
+    private $descricao;
+    private $unid_medida; // Adicionando o atributo unid_medida
+    private $estoq_minimo; // Atributo para o estoque mínimo
+    private $estoq_maximo; // Atributo para o estoque máximo
+    private $dtcria; // Data de criação
+    private $usuariologin; // Usuário que criou o produto
 
-    //Getters
-    public function getCodigoProduto()
+    // Getters dos atributos
+    public function getCodigo()
     {
-        return $this->codigo_produto;
+        return $this->codigo;
     }
-    public function getNomeProduto()
+
+    public function getDescricao()
     {
-        return $this->nome_produto;
+        return $this->descricao;
     }
-    public function getPrecoProduto()
+
+    public function getUnidMedida()
     {
-        return $this->preco_produto;
+        return $this->unid_medida;
     }
-    public function getDescricaoProduto()
+
+    public function getEstoq_minimo()
     {
-        return $this->descricao_produto;
+        return $this->estoq_minimo;
     }
-    public function getQuantidadeProduto()
+
+    public function getEstoq_maximo()
     {
-        return $this->quantidade_produto;
+        return $this->estoq_maximo;
     }
+
+    public function getDtcria()
+    {
+        return $this->dtcria;
+    }
+
     public function getUsuariologin()
     {
         return $this->usuariologin;
     }
 
-    //Setters
-    public function setCodigoProduto($codigo_produto_Front)
+    // Setters dos atributos
+    public function setCodigo($codigoFront)
     {
-        $this->codigo_produto = $codigo_produto_Front;
+        $this->codigo = $codigoFront;
     }
-    public function setNomeProduto($nome_produto_Front)
+
+    public function setDescricao($descricaoFront)
     {
-        $this->nome_produto = $nome_produto_Front;
+        $this->descricao = $descricaoFront;
     }
-    public function setPrecoProduto($preco_produto_Front)
+
+    public function setUnidMedida($unidMedidaFront)
     {
-        $this->preco_produto = $preco_produto_Front;
+        $this->unid_medida = $unidMedidaFront;
     }
-    public function setDescricaoProduto($descricao_produto_Front)
+
+    public function setestoq_minimo($estoq_minimoFront)
     {
-        $this->descricao_produto = $descricao_produto_Front;
+        $this->estoq_minimo = $estoq_minimoFront;
     }
-    public function setQuantidadeProduto($quantidade_produto_Front)
+
+    public function setEstoq_maximo($estoq_maximoFront)
     {
-        $this->quantidade_produto_produto = $quantidade_produto_Front;
+        $this->estoq_maximo = $estoq_maximoFront;
     }
-    public function setUsuarioLogin($usuariologinFront)
+
+    public function setDtcria($dtcriaFront)
+    {
+        $this->dtcria = $dtcriaFront;
+    }
+
+    public function setusuariologin($usuariologinFront)
     {
         $this->usuariologin = $usuariologinFront;
     }
 
     public function inserir()
     {
-        // retornos possíveis:
-        // 1 - produto cadastrado corretamente (banco)
-        // 2 - faltou informar o código do produto (front-end)
-        // 3 - codigo do produdo maior que 5 caracteres (front-end)
-        // 4 - faltou informar o nome do produto (front-end)
-        // 5 - faltou informar o preço do produto (front-end)
-        // 5.5 - preço não pode ser menor ou igual a 0 (zero) (front)
-        // 6 - faltou informar a descrição do produto (front-end)
-        // 7 - faltou informar a quantidade do produto (front-end)
-        // 7.7 - quantidade não pode ser menor ou igual a 0 (zero) (front)
-        // 8 - houve algum problema no insert da tabela (banco)
-        // 9 - houve problema no salvamento do log, mas o produto foi inserido
-        // 10 - usuario não informado ou não encontrado
-        // 99 - Os campos recebidos do front não estão corretos
+        // Retornos possíveis:
+        // 1 - Produto cadastrado corretamente (Banco)
+        // 2 - Faltou informar a descrição (FrontEnd)
+        // 3 - Faltou informar a unidade de medida (FrontEnd)
+        // 4 - Faltou informar o estoque mínimo (FrontEnd)
+        // 5 - Faltou informar o estoque máximo (FrontEnd)
+        // 6 - Houve algum problema no insert da tabela (Banco)
+        // 7 - Usuario do sistema não informado (front)
+        // 8 - Houve problema no salvamento do log, mas o produto foi inserido
 
         try {
-            //dados recebidos via JSON
+            // Dados recebidos via JSON
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
 
-            //array com os dados esperados do front
+            // Array com os dados que deverão vir do Front
             $lista = array(
-                "codigo_produto" => '0',
-                "nome_produto" => '0',
-                "preco_produto" => '0',
-                "descricao_produto" => '0',
-                "quantidade_produto" => '0',
+                "descricao" => '0',
+                "unid_medida" => '0',
+                "estoq_minimo" => '0',
+                "estoq_maximo" => '0',
                 "usuariologin" => '0'
             );
 
-            if (verificarParam($resultado, $lista) == 1) { //dessa vez sem usar -1 kk
-                //fazendo os setters
-                $this->setCodigoProduto($resultado->codigo_produto);
-                $this->setNomeProduto($resultado->nome_produto);
-                $this->setPrecoProduto($resultado->preco_produto);
-                $this->setDescricaoProduto($resultado->descricao_produto);
-                $this->setQuantidadeProduto($resultado->quantidade_produto);
-                $this->setUsuarioLogin($resultado->usuariologin);
+            // Verificando os parâmetros recebidos
+            if (verificarParam($resultado, $lista) == 1) {
+                // Atribuindo os valores recebidos
+                $descricao = $resultado->descricao;
+                $unid_medida = $resultado->unid_medida;
+                $estoq_minimo = $resultado->estoq_minimo;
+                $estoq_maximo = $resultado->estoq_maximo;
+                $usuarioLogin = $resultado->usuariologin;
 
-                //validação dos campos
-                if (trim($this->getCodigoProduto()) == '') {
+                // Realizando as validações
+                if (trim($descricao) == '') {
                     $retorno = array(
                         'codigo' => 2,
-                        'msg' => 'Codigo do Produto não informado'
+                        'msg' => 'Descrição do produto não informada'
                     );
-                } elseif (strlen($this->getCodigoProduto()) > 5) {
+                } elseif (trim($unid_medida) == '') {
                     $retorno = array(
                         'codigo' => 3,
-                        'msg' => 'Codigo do Produto maior que 5 caracteres'
+                        'msg' => 'Unidade de medida não informada'
                     );
-                } elseif (trim($this->getNomeProduto()) == '') {
+                } elseif (trim($estoq_minimo) == '') {
                     $retorno = array(
                         'codigo' => 4,
-                        'msg' => 'Nome do Produto não informado'
+                        'msg' => 'Estoque mínimo não informado'
                     );
-                } elseif (trim($this->getPrecoProduto()) == '') {
+                } elseif (trim($estoq_maximo) == '') {
                     $retorno = array(
                         'codigo' => 5,
-                        'msg' => 'Preco do Produto não informado'
+                        'msg' => 'Estoque máximo não informado'
                     );
-                } elseif ($this->getPrecoProduto() <= 0) {
-                    $retorno = array(
-                        'codigo' => 5.5,
-                        'msg' => 'Preço não pode ser menor ou igual a 0 (zero)'
-                    );
-                } elseif (trim($this->getDescricaoProduto()) == '') {
-                    $retorno = array(
-                        'codigo' => 6,
-                        'msg' => 'Descrição do Produto não informado'
-                    );
-                } elseif (trim($this->getQuantidadeProduto()) == '') {
+                } elseif (trim($usuarioLogin) == '') {
                     $retorno = array(
                         'codigo' => 7,
-                        'msg' => 'Quantidade do Produto não informado'
-                    );
-                } elseif ($this->getQuantidadeProduto() <= 0) {
-                    $retorno = array(
-                        'codigo' => 7.7,
-                        'msg' => 'Quantidade do Produto não não pode ser menor ou igual a 0 (zero)'
-                    );
-                } elseif (trim($this->getUsuarioLogin()) == '') {
-                    $retorno = array(
-                        'codigo' => 10,
-                        'msg' => 'Usuário não informado'
+                        'msg' => 'Usuário do sistema não informado'
                     );
                 } else {
-                    //carrega a model
-                    $this->load->model('M_produdos');
-
-                    //inserindo no banco
-                    $resultadoInserir = $this->M_produtos->inserir(
-                        $this->getCodigoProduto(),
-                        $this->getNomeProduto(),
-                        $this->getPrecoProduto(),
-                        $this->getDescricaoProduto(),
-                        $this->getQuantidadeProduto(),
-                        $this->getUsuarioLogin()
+                    // Realizando a inserção no banco de dados
+                    $this->load->model('M_produto');
+                    $retorno = $this->M_produto->inserir(
+                        $descricao,
+                        $unid_medida,
+                        $estoq_minimo,
+                        $estoq_maximo,
+                        $usuarioLogin
                     );
-
-                    if ($resultadoInserir) {
-                        $retorno = array(
-                            'codigo' => 1,
-                            'msg' => 'Produto inserido com sucesso'
-                        );
-                    } else {
-                        $retorno = array(
-                            'codigo' => 8,
-                            'msg' => 'Erro ao inserir produto no banco'
-                        );
-                    }
                 }
             } else {
                 $retorno = array(
                     'codigo' => 99,
-                    'msg' => 'Os campos do front não estão corretos'
+                    'msg' => 'Os campos vindos do FrontEnd não representam o método de inserção. Verifique.'
                 );
             }
         } catch (Exception $e) {
             $retorno = array(
                 'codigo' => 0,
-                'msg' => 'Erro ao processar: ',
-                $e->getMessage()
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
             );
         }
 
-        //retorno em formato json
+        // Retorno no formato JSON
         echo json_encode($retorno);
     }
 
@@ -200,62 +178,76 @@ class Produtos extends CI_Controller
         1 - produto encontrado (banco)
         2 - preço não pode ser negativo (front-end)
         3 - quantidade do produto não pode ser negativa
+        4 - unidade de medida não informada
         6 - dados não encontrados (banco)
         7 - usuario não encontrado ou não definido
         99 - erro inesperado no sistema*/
 
         try {
-            // recebe os paremetros em json
+            // recebe os parâmetros em json
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
 
-            // array com os dados que deveram vir do front
+            // array com os dados que devem vir do front
             $lista = array(
-                "codigo_produto" => '0',
-                "nome_produto" => '0',
-                "preco_produto" => '0',
-                "descricao_produto" => '0',
-                "quantidade_produto" => '0',
+                "codigo" => '0',
+                "descricao" => '0',
+                "unid_medida" => '0',
+                "estoq_minimo" => '0',
+                "estoq_maximo" => '0',
+                "dtcria" => '0',
                 "usuariologin" => '0'
             );
 
             if (verificarParam($resultado, $lista) == 1) {
                 //fazendo os setters
-                $this->setCodigoProduto($resultado->codigo_produto);
-                $this->setNomeProduto($resultado->nome_produto);
-                $this->setPrecoProduto($resultado->preco_produto);
-                $this->setDescricaoProduto($resultado->descricao_produto);
-                $this->setQuantidadeProduto($resultado->quantidade_produto);
-                $this->setUsuarioLogin($resultado->usuariologin);
+                $this->setCodigo($resultado->codigo);  // Alterado para 'codigo'
+                $this->setDescricao($resultado->descricao);  // Alterado para 'descricao'
+                $this->setUnidMedida($resultado->unid_medida);  // Alterado para 'unid_medida'
+                $this->setEstoq_minimo($resultado->estoq_minimo);  // Alterado para 'estoq_minimo'
+                $this->setEstoq_maximo($resultado->estoq_maximo);  // Alterado para 'estoq_maximo'
+                $this->setDtcria($resultado->dtcria);  // Alterado para 'dtcria'
+                $this->setusuariologin($resultado->usuariologin);  // Alterado para 'usuariologin'
 
-                // vaçidações
-                if ($this->getPrecoProduto() < 0) {
+                // Validações
+                if ($this->getDescricao() == '') {
                     $retorno = array(
-                        'codigo' => 2,
-                        'msg' => 'Preço não pode ser negativo'
+                        'codigo' => 4,
+                        'msg' => 'Descrição não informada'
                     );
-                } elseif ($this->getQuantidadeProduto() < 0) {
+                } elseif (trim($this->getUnidMedida()) == '') { // nova validação para unidade de medida
+                    $retorno = array(
+                        'codigo' => 4,
+                        'msg' => 'Unidade de medida não informada'
+                    );
+                } elseif ($this->getEstoq_minimo() < 0) {
                     $retorno = array(
                         'codigo' => 3,
-                        'msg' => 'Quantidade do produto não pode ser negativa'
+                        'msg' => 'Estoque mínimo não pode ser negativo'
                     );
-                } elseif (trim($this->getUsuarioLogin()) == '') {
+                } elseif ($this->getEstoq_maximo() < 0) {
+                    $retorno = array(
+                        'codigo' => 3,
+                        'msg' => 'Estoque máximo não pode ser negativo'
+                    );
+                } elseif (trim($this->getUsuariologin()) == '') {
                     $retorno = array(
                         'codigo' => 7,
                         'msg' => 'Usuário não informado'
                     );
                 } else {
-                    // realizando a instancia da model
-                    $this->load->model('M_produtos');
+                    // realizando a instância da model
+                    $this->load->model('M_produto');
 
                     // atributo retorno recebe array com informações da consulta
-                    $retorno = $this->M_produtos->consultar(
-                        $this->getCodigoProduto(),
-                        $this->getNomeProduto(),
-                        $this->getPrecoProduto(),
-                        $this->getDescricaoProduto(),
-                        $this->getQuantidadeProduto(),
-                        $this->getUsuarioLogin()
+                    $retorno = $this->M_produto->consultar(
+                        $this->getCodigo(),
+                        $this->getDescricao(),
+                        $this->getUnidMedida(),
+                        $this->getestoq_minimo(),
+                        $this->getEstoq_maximo(),
+                        $this->getDtcria(),
+                        $this->getusuariologin() // passando todos os parâmetros para a consulta
                     );
                 }
             } else {
@@ -266,9 +258,8 @@ class Produtos extends CI_Controller
             }
         } catch (Exception $e) {
             $retorno = array(
-                'codigo' => 0,
-                'msg' => 'O seguinte erro ocorreu: ',
-                $e->getMessage()
+                'codigo' => 99,
+                'msg' => 'O seguinte erro ocorreu: ' . $e->getMessage()
             );
         }
         echo json_encode($retorno);
@@ -276,73 +267,85 @@ class Produtos extends CI_Controller
 
     public function alterar()
     {
-        /*retornos:
+        /* retornos:
         1 - sucesso
-        2 - codigo não informado
+        2 - código não informado
         3 - preço não pode ser negativo
         4 - quantidade não pode ser negativa
         5 - nome ou descrição não informado
         6 - dados não encontrados
-        7 - usuário não informado*/
+        7 - usuário não informado
+        8 - unidade de medida não informada */
 
         try {
+            // Recebe os dados enviados no corpo da requisição
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
 
+            // Lista de parâmetros que devem ser recebidos
             $lista = array(
-                "codigo_produto" => '0',
-                "nome_produto" => '0',
-                "preco_produto" => '0',
-                "descricao_produto" => '0',
-                "quantidade_produto" => '0',
-                "usuariologin" => '0',
+                "codigo" => '0',  // Código do produto
+                "descricao" => '0',  // Descrição do produto
+                "unid_medida" => '0',  // Unidade de medida
+                "estoq_minimo" => '0',  // Estoque mínimo
+                "estoq_maximo" => '0',  // Estoque máximo
+                "dtcria" => '0',  // Data de criação
+                "usuariologin" => '0'  // Usuário que criou
             );
 
+            // Verifica se os parâmetros estão corretos
             if (verificarParam($resultado, $lista) == 1) {
-                //setters
-                $this->setCodigoProduto($resultado->codigo_produto);
-                $this->setNomeProduto($resultado->nome_produto);
-                $this->setPrecoProduto($resultado->preco_produto);
-                $this->setDescricaoProduto($resultado->descricao_produto);
-                $this->setQuantidadeProduto($resultado->quantidade_produto);
-                $this->setUsuariologin($resultado->usuariologin);
+                // Fazendo os setters com os dados recebidos
+                $this->setCodigo($resultado->codigo);  // Alterado para 'codigo'
+                $this->setDescricao($resultado->descricao);  // Alterado para 'descricao'
+                $this->setUnidMedida($resultado->unid_medida);  // Alterado para 'unid_medida'
+                $this->setestoq_minimo($resultado->estoq_minimo);  // Alterado para 'estoq_minimo'
+                $this->setEstoq_maximo($resultado->estoq_maximo);  // Alterado para 'estoq_maximo'
+                $this->setDtcria($resultado->dtcria);  // Alterado para 'dtcria'
+                $this->setusuariologin($resultado->usuariologin);  // Alterado para 'usuariologin'
 
-                //validacoes
-                if (trim($this->getCodigoProduto()) == '' || trim($this->getCodigoProduto()) == '0') {
+                // Validações
+                if (trim($this->getCodigo()) == '' || trim($this->getCodigo()) == '0') {
                     $retorno = array(
                         'codigo' => 2,
                         'msg' => 'Código não informado'
                     );
-                } elseif ($this->getPrecoProduto() < 0) {
-                    $retorno = array(
-                        'codigo' => 3,
-                        'msg' => 'Preço não pode ser negativo'
-                    );
-                } elseif ($this->getQuantidadeProduto() < 0) {
+                } elseif ($this->getestoq_minimo() < 0) {
                     $retorno = array(
                         'codigo' => 4,
-                        'msg' => 'Quantidade não pode ser negativa'
+                        'msg' => 'Estoque mínimo não pode ser negativo'
                     );
-                } elseif (trim($this->getNomeProduto()) == '' || trim($this->getDescricaoProduto()) == '') {
+                } elseif ($this->getEstoq_maximo() < 0) {
+                    $retorno = array(
+                        'codigo' => 4,
+                        'msg' => 'Estoque máximo não pode ser negativo'
+                    );
+                } elseif (trim($this->getDescricao()) == '') {
                     $retorno = array(
                         'codigo' => 5,
-                        'msg' => 'Nome ou descrição não informado'
+                        'msg' => 'Descrição não informada'
                     );
-                } elseif (trim($this->getUsuarioLogin()) == '') {
+                } elseif (trim($this->getUnidMedida()) == '') { // nova validação para unidade de medida
+                    $retorno = array(
+                        'codigo' => 8,
+                        'msg' => 'Unidade de medida não informada'
+                    );
+                } elseif (trim($this->getusuariologin()) == '') {
                     $retorno = array(
                         'codigo' => 7,
                         'msg' => 'Usuário não informado'
                     );
                 } else {
-                    $this->load->model('M_produtos');
-
-                    $retorno = $this->M_produtos->alterar(
-                        $this->getCodigoProduto(),
-                        $this->getNomeProduto(),
-                        $this->getPrecoProduto(),
-                        $this->getDescricaoProduto(),
-                        $this->getQuantidadeProduto(),
-                        $this->getUsuarioLogin()
+                    // Realiza a consulta de alteração na model
+                    $this->load->model('M_produto');
+                    $retorno = $this->M_produto->alterar(
+                        $this->getCodigo(),
+                        $this->getDescricao(),
+                        $this->getUnidMedida(),
+                        $this->getestoq_minimo(),
+                        $this->getEstoq_maximo(),
+                        $this->getDtcria(),
+                        $this->getusuariologin() // Passando todos os parâmetros para a consulta
                     );
                 }
             } else {
@@ -354,8 +357,7 @@ class Produtos extends CI_Controller
         } catch (Exception $e) {
             $retorno = array(
                 'codigo' => 0,
-                'msg' => 'O seguinte erro ocorreu: ',
-                $e->getMessage()
+                'msg' => 'O seguinte erro ocorreu: ' . $e->getMessage()
             );
         }
         echo json_encode($retorno);
@@ -363,59 +365,50 @@ class Produtos extends CI_Controller
 
     public function desativar()
     {
-        /*retornos:
+        /* retornos:
         1 - produto desativado corretamente
-        2 - codigo do produto ão informado
-        3 - existem unidades de medidas cadastradas com esse produto
-        5 - usuario não informado
-        6 - produto não encontrado
-        7 - erro no log, mas funfou*/
+        2 - código do produto não informado
+        3 - produto não encontrado
+        5 - usuário não informado
+        6 - erro no log, mas funfou
+        8 - unidade de medida não informada
+        */
 
         try {
-            // recebe os parâmetros via JSON
+            // Recebe os parâmetros via JSON
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
 
-            // array com os parâmetros esperados
+            // Define os parâmetros esperados
             $lista = array(
-                "codigo_produto" => '0',
-                "usuarioLogin" => '0'
+                "codigo" => '0',
+                "usuariologin" => '0',
             );
 
+            // Verifica se os parâmetros estão corretos
             if (verificarParam($resultado, $lista) == 1) {
-                // setters para os dados recebidos
-                $this->setCodigoProduto($resultado->codigo_produto);
-                $this->setUsuarioLogin($resultado->usuarioLogin);
+                // Define os setters para os dados recebidos
+                $this->setCodigo($resultado->codigo);
+                $this->setUsuarioLogin($resultado->usuariologin);
 
-                // validações
-                if (trim($this->getCodigoProduto()) == '' || trim($this->getCodigoProduto()) == '0') {
+                // Realiza as validações
+                if (empty(trim($this->getCodigo())) || $this->getCodigo() == '0') {
                     $retorno = array(
                         "codigo" => 2,
-                        "msg" => 'Código do produto não foi informado.'
+                        "msg" => 'Código do produto não informado.'
                     );
-                } elseif (trim($this->getUsuarioLogin()) == '') {
+                } elseif (empty(trim($this->getUsuarioLogin()))) {
                     $retorno = array(
                         "codigo" => 5,
                         "msg" => 'Usuário não informado.'
                     );
                 } else {
-                    // instancia o model para desativar o produto
-                    $this->load->model('ProdutoModel');
-
-                    // verifica se o produto pode ser desativado (verifica dependências)
-                    $verificaDependencias = $this->ProdutoModel->verificarDependencias($this->getCodigoProduto());
-                    if ($verificaDependencias) {
-                        $retorno = array(
-                            "codigo" => 3,
-                            "msg" => 'Existem unidades de medida cadastradas com este produto. Não é possível desativá-lo.'
-                        );
-                    } else {
-                        // executa o método de desativação
-                        $retorno = $this->ProdutoModel->desativarProduto(
-                            $this->getCodigoProduto(),
-                            $this->getUsuarioLogin()
-                        );
-                    }
+                    // Chama o método para desativar o produto diretamente
+                    $this->load->model('M_produto');
+                    $retorno = $this->M_produto->desativar(
+                        $this->getCodigo(),
+                        $this->getUsuariologin()
+                    );
                 }
             } else {
                 $retorno = array(
@@ -430,7 +423,7 @@ class Produtos extends CI_Controller
             );
         }
 
-        // retorna os dados no formato JSON
+        // Retorna os dados no formato JSON
         echo json_encode($retorno);
     }
 }
